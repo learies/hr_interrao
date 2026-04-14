@@ -2,6 +2,7 @@ from typing import Mapping
 
 from flask import Flask
 
+from app.blueprints import register_blueprints
 from app.settings.config import Config, load_config
 from app.settings.database import db
 from app.settings.env import init_env
@@ -23,5 +24,8 @@ def create_app(
 
     # Инициализация базы данных
     db.init_app(app)
+
+    # Регистрация блюпринтов
+    register_blueprints(app)
 
     return app
