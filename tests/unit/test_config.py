@@ -60,14 +60,14 @@ class TestLoadConfig:
             DevelopmentConfig,
             env={"DEV_SECRET_KEY": "my-dev-secret"},
         )
-        assert config.SECRET_KEY_ENV_NAME == "my-dev-secret"
+        assert config.SECRET_KEY == "my-dev-secret"
 
     def test_generate_secret_key_if_env_not_exists(self) -> None:
         """Тест для генерации секретного ключа если переменная окружения не существует"""
         config = load_config(DevelopmentConfig, env={})
-        assert isinstance(config.SECRET_KEY_ENV_NAME, str)
-        assert config.SECRET_KEY_ENV_NAME != ""
-        assert len(config.SECRET_KEY_ENV_NAME) == 64  # token_hex(32)
+        assert isinstance(config.SECRET_KEY, str)
+        assert config.SECRET_KEY != ""
+        assert len(config.SECRET_KEY) == 64  # token_hex(32)
 
     def test_returns_config_instance(self) -> None:
         """Тест для возврата экземпляра конфигурации"""

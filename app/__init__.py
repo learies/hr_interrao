@@ -3,6 +3,7 @@ from typing import Mapping
 from flask import Flask
 
 from app.settings.config import Config, load_config
+from app.settings.database import db
 from app.settings.env import init_env
 
 
@@ -19,5 +20,8 @@ def create_app(
 
     # Загрузка конфигурации
     app.config.from_object(load_config(config_class))
+
+    # Инициализация базы данных
+    db.init_app(app)
 
     return app
