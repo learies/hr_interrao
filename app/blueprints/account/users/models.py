@@ -1,6 +1,7 @@
 from datetime import datetime
+from uuid import UUID
 
-from sqlalchemy import UUID, Boolean, DateTime, Uuid, func, sql
+from sqlalchemy import Boolean, DateTime, ForeignKey, Uuid, func, sql
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.settings.database import BaseModel
@@ -25,7 +26,7 @@ class UserModel(BaseModel):
     )
 
     # Relationships
-    last_login: Mapped["LastLoginModel"] = relationship(
+    last_login: Mapped["LastLoginModel | None"] = relationship(
         back_populates="user",
         lazy="joined",
     )
@@ -48,6 +49,10 @@ class LastLoginModel(BaseModel):
 
     user_id: Mapped[UUID] = mapped_column(
         Uuid(as_uuid=True),
+        ForeignKey(
+            "account.user.id",
+            ondelete="CASCADE",
+        ),
         primary_key=True,
         comment="Идентификатор пользователя",
     )
