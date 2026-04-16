@@ -25,8 +25,14 @@ class WorkerService(BaseService[WorkerModel, WorkerRepository]):
             offset=query.offset,
             limit=query.limit,
             active=query.active,
+            search=query.search,
+            search_by=query.search_by,
         )
-        total = self.repository.count_all(active=query.active)
+        total = self.repository.count_all(
+            active=query.active,
+            search=query.search,
+            search_by=query.search_by,
+        )
         return self._build_pagination(workers, query, total)
 
     def get_by_id(self, id: UUID) -> WorkerResponseDTO | None:
