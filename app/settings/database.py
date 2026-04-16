@@ -3,13 +3,15 @@ from flask_sqlalchemy.session import Session
 from sqlalchemy.orm import DeclarativeBase, scoped_session
 
 
-class BaseModel(DeclarativeBase):
+class _BaseModel(DeclarativeBase):
     """Базовая модель для всех моделей."""
 
     __abstract__ = True
 
 
-db = SQLAlchemy(model_class=BaseModel)
+db = SQLAlchemy(model_class=_BaseModel)
+
+BaseModel = db.Model
 
 
 def get_db_session() -> scoped_session[Session]:
