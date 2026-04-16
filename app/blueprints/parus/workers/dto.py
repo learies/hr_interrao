@@ -1,4 +1,5 @@
 from dataclasses import asdict, dataclass
+from datetime import datetime
 from typing import Any
 from uuid import UUID
 
@@ -10,7 +11,9 @@ class WorkerResponseDTO:
     id: UUID
     name: str
     email: str
-    active: bool
+    is_active: bool
+    is_admin: bool = False
+    last_login: datetime | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Преобразование в словарь."""
