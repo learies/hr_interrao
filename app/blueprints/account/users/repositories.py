@@ -1,4 +1,7 @@
+from typing import Sequence
 from uuid import UUID
+
+from sqlalchemy import select
 
 from ..repositories import AccountRepository
 from .models import UserModel
@@ -6,6 +9,10 @@ from .models import UserModel
 
 class UserRepository(AccountRepository[UserModel]):
     """Репозиторий для работы с пользователями."""
+
+    def get_all(self) -> Sequence[UserModel]:
+        """Возвращает всех пользователей."""
+        return self.session.scalars(select(UserModel)).all()
 
     def get_by_id(self, user_id: UUID) -> UserModel | None:
         """Возвращает пользователя по идентификатору."""
