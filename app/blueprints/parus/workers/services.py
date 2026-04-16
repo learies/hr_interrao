@@ -5,8 +5,10 @@ from app.blueprints.account.users.services import UserService, get_user_service
 from app.core.services import BaseService
 from app.settings.database import get_db_session
 
+from ..pagination import Pagination
 from .dto import WorkerResponseDTO
 from .models import WorkerModel
+from .query import WorkerQuery
 from .repositories import WorkerRepository
 
 
@@ -17,10 +19,15 @@ class WorkerService(BaseService[WorkerModel, WorkerRepository]):
         super().__init__(repository)
         self.user_service = user_service
 
-    def get_all(self) -> Sequence[WorkerResponseDTO]:
+    def get_all(self, query: WorkerQuery) -> Pagination[WorkerResponseDTO]:
         """Возвращает всех сотрудников."""
-        workers = self.repository.get_all()
-        return self._build_response_dtos(workers)
+        workers = self.repository.get_all(
+            offset=query.offset,
+            limit=query.limit,
+            active=query.active,
+        )
+        total = self.repository.count_all(active=query.active)
+        return self._build_pagination(workers, query, total)
 
     def get_by_id(self, id: UUID) -> WorkerResponseDTO | None:
         """Возвращает сотрудника по идентификатору."""
@@ -53,6 +60,17 @@ class WorkerService(BaseService[WorkerModel, WorkerRepository]):
             )
             for worker in workers
         ]
+
+    def _build_pagination(
+        self, workers: Sequence[WorkerModel], query: WorkerQuery, total: int
+    ) -> Pagination[WorkerResponseDTO]:
+        """Получение пагинации для списка сотрудников."""
+        return Pagination(
+            items=self._build_response_dtos(workers),
+            page=query.page,
+            per_page=query.per_page,
+            total=total,
+        )
 
 
 def get_worker_service() -> WorkerService:
