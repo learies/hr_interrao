@@ -1,6 +1,7 @@
 from typing import Sequence
 from uuid import UUID
 
+from app.blueprints.account.users.services import UserService, get_user_service
 from app.core.services import BaseService
 from app.settings.database import get_db_session
 
@@ -12,28 +13,51 @@ from .repositories import WorkerRepository
 class WorkerService(BaseService[WorkerModel, WorkerRepository]):
     """Сервис для работы с сотрудниками."""
 
-    def _get_response_dto(self, worker: WorkerModel) -> WorkerResponseDTO:
-        """Получение DTO для сотрудника."""
-        return WorkerResponseDTO(
-            id=worker.id,
-            name=worker.name,
-            email=worker.email,
-            active=worker.active,
-        )
+    def __init__(self, repository: WorkerRepository, user_service: UserService):
+        super().__init__(repository)
+        self.user_service = user_service
 
     def get_all(self) -> Sequence[WorkerResponseDTO]:
         """Возвращает всех сотрудников."""
         workers = self.repository.get_all()
-        return [self._get_response_dto(worker) for worker in workers]
+        return self._build_response_dtos(workers)
 
     def get_by_id(self, id: UUID) -> WorkerResponseDTO | None:
         """Возвращает сотрудника по идентификатору."""
         worker = self.repository.get_by_id(id)
-        return self._get_response_dto(worker) if worker is not None else None
+        return self._build_response_dtos([worker])[0] if worker is not None else None
+
+    def _attach_user_to_worker(self, workers: Sequence[WorkerModel]) -> None:
+        """Прикрепление пользователя к сотруднику."""
+        user_ids = [worker.id for worker in workers]
+        users = self.user_service.get_by_ids(user_ids)
+        users_map = {user.id: user for user in users}
+        for worker in workers:
+            user = users_map.get(worker.id)
+            setattr(worker, "is_admin", user.is_admin if user else False)
+            setattr(worker, "last_login", user.last_login if user else None)
+
+    def _build_response_dtos(
+        self, workers: Sequence[WorkerModel]
+    ) -> Sequence[WorkerResponseDTO]:
+        """Получение DTO для списка сотрудников."""
+        self._attach_user_to_worker(workers)
+        return [
+            WorkerResponseDTO(
+                id=worker.id,
+                name=worker.name,
+                email=worker.email,
+                is_active=worker.is_active,
+                is_admin=getattr(worker, "is_admin", False),
+                last_login=getattr(worker, "last_login", None),
+            )
+            for worker in workers
+        ]
 
 
 def get_worker_service() -> WorkerService:
     """Получение сервиса для работы с сотрудниками."""
     session = get_db_session()
     repository = WorkerRepository(model=WorkerModel, session=session)
-    return WorkerService(repository=repository)
+    user_service = get_user_service()
+    return WorkerService(repository=repository, user_service=user_service)
