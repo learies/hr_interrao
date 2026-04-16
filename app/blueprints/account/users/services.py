@@ -15,19 +15,21 @@ class UserService(AccountService[UserModel, UserRepository]):
     def get_all(self) -> Sequence[UserResponseDTO]:
         """Получение всех пользователей."""
         users = self.repository.get_all()
-        return self._get_response_dto(users)
+        return self._build_response_dtos(users)
 
     def get_by_id(self, user_id: UUID) -> UserResponseDTO | None:
         """Получение пользователя по идентификатору."""
         user = self.repository.get_by_id(user_id)
-        return self._get_response_dto([user])[0] if user is not None else None
+        return self._build_response_dtos([user])[0] if user else None
 
     def get_by_ids(self, user_ids: Sequence[UUID]) -> Sequence[UserResponseDTO]:
         """Получение пользователей по идентификаторам."""
+        if not user_ids:
+            return ()
         users = self.repository.get_by_ids(user_ids)
-        return self._get_response_dto(users)
+        return self._build_response_dtos(users)
 
-    def _get_response_dto(
+    def _build_response_dtos(
         self, users: Sequence[UserModel]
     ) -> Sequence[UserResponseDTO]:
         """Получение DTO для пользователя."""
