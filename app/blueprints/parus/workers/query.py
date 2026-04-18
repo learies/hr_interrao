@@ -75,8 +75,7 @@ class WorkerQuery:
     @staticmethod
     def _parse_bool(value: str | None) -> bool | None:
         """Парсинг boolean из query string."""
-        if value:
-            return value.lower() in ("true", "1", "yes")
+        return value.lower() in ("true", "1", "yes") if value else None
 
     def _validate_page(self, page: int) -> int:
         """Валидация страницы."""
