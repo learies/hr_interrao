@@ -1,4 +1,23 @@
-[tool.pytest]
+[project]
+name = "hr_interrao_api"
+version = "0.1.0"
+description = "API для HR портала"
+requires-python = ">=3.11"
+
+dependencies = [
+    "flask>=3.1",
+    "flask-sqlalchemy>=3.1",
+    "psycopg[binary]>=3.3",
+    "python-dotenv>=1.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0",
+    "ruff>=0.15",
+]
+
+[tool.pytest.ini_options]
 minversion = "9.0"
 testpaths = ["tests"]
-addopts = ["-ra"]
+addopts = ["-ra", "--strict-markers"]
