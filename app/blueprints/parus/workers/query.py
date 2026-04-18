@@ -90,10 +90,8 @@ class WorkerQuery:
         """Валидация поискового запроса."""
         if search and len(search) >= 3:
             return search.strip().lower()
-        return None
 
     def _validate_search_by(self, search_by: str | None) -> str | None:
         """Валидация способа поиска."""
         if search_by and search_by.lower() in self.SEARCH_BY:
             return search_by.lower()
-        return None
