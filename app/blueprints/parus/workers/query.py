@@ -1,4 +1,4 @@
-from typing import Any, ClassVar, Mapping, Self
+from typing import ClassVar, Mapping, Self
 
 
 class WorkerQuery:
@@ -61,7 +61,7 @@ class WorkerQuery:
         return self._search_by
 
     @classmethod
-    def from_request(cls, args: Mapping[str, Any]) -> Self:
+    def from_request(cls, args: Mapping[str, str]) -> Self:
         """Создание класса из HTTP-запроса."""
         active = cls._parse_bool(args.get("is_active", "true"))
         return cls(
