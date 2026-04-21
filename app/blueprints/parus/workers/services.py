@@ -1,6 +1,7 @@
 from typing import Sequence
 from uuid import UUID
 
+from app.blueprints.account.users.dto import UserResponseDTO
 from app.blueprints.account.users.services import UserService, build_user_service
 from app.core.services import BaseService
 from app.settings.database import get_db_session
@@ -40,32 +41,33 @@ class WorkerService(BaseService[WorkerModel, WorkerRepository]):
         worker = self.repository.get_by_id(worker_id)
         return self._build_response_dtos([worker])[0] if worker is not None else None
 
-    def _attach_user_to_worker(self, workers: Sequence[WorkerModel]) -> None:
-        """Прикрепление пользователя к сотруднику."""
-        user_ids = [worker.id for worker in workers]
-        users = self.user_service.get_by_ids(user_ids)
-        users_map = {user.id: user for user in users}
-        for worker in workers:
-            user = users_map.get(worker.id)
-            setattr(worker, "is_admin", user.is_admin if user else False)
-            setattr(worker, "last_login", user.last_login if user else None)
+    def _get_users_by_worker_id(
+        self, workers: Sequence[WorkerModel]
+    ) -> dict[UUID, UserResponseDTO]:
+        """Возвращает пользователей, сгруппированных по идентификатору сотрудника."""
+        worker_ids = [worker.id for worker in workers]
+        users = self.user_service.get_by_ids(worker_ids)
+        return {user.id: user for user in users}
 
     def _build_response_dtos(
         self, workers: Sequence[WorkerModel]
     ) -> Sequence[WorkerResponseDTO]:
         """Получение DTO для списка сотрудников."""
-        self._attach_user_to_worker(workers)
-        return [
-            WorkerResponseDTO(
-                id=worker.id,
-                name=worker.name,
-                email=worker.email,
-                is_active=worker.is_active,
-                is_admin=getattr(worker, "is_admin", False),
-                last_login=getattr(worker, "last_login", None),
+        users_map = self._get_users_by_worker_id(workers)
+        response_dtos: list[WorkerResponseDTO] = []
+        for worker in workers:
+            user = users_map.get(worker.id)
+            response_dtos.append(
+                WorkerResponseDTO(
+                    id=worker.id,
+                    name=worker.name,
+                    email=worker.email,
+                    is_active=worker.is_active,
+                    is_admin=user.is_admin if user else False,
+                    last_login=user.last_login if user else None,
+                )
             )
-            for worker in workers
-        ]
+        return response_dtos
 
     def _build_pagination(
         self, workers: Sequence[WorkerModel], query: WorkerQuery, total: int
