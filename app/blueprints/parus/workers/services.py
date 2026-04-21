@@ -25,14 +25,16 @@ class WorkerService(BaseService[WorkerModel, WorkerRepository]):
         workers = self.repository.get_all(
             offset=query.offset,
             limit=query.limit,
-            active=query.active,
-            search=query.search,
             search_by=query.search_by,
+            search=query.search,
+            filter_by=query.filter_by,
+            filter=query.filter,
         )
         total = self.repository.count_all(
-            active=query.active,
-            search=query.search,
             search_by=query.search_by,
+            search=query.search,
+            filter_by=query.filter_by,
+            filter=query.filter,
         )
         return self._build_paginated_response(workers, query, total)
 
