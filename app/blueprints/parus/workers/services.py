@@ -34,12 +34,12 @@ class WorkerService(BaseService[WorkerModel, WorkerRepository]):
             search=query.search,
             search_by=query.search_by,
         )
-        return self._build_pagination(workers, query, total)
+        return self._build_paginated_response(workers, query, total)
 
     def get_by_id(self, worker_id: UUID) -> WorkerResponseDTO | None:
         """Возвращает сотрудника по идентификатору."""
         worker = self.repository.get_by_id(worker_id)
-        return self._build_response_dtos([worker])[0] if worker is not None else None
+        return self._build_worker_dtos([worker])[0] if worker is not None else None
 
     def _get_users_by_worker_id(
         self, workers: Sequence[WorkerModel]
@@ -49,15 +49,15 @@ class WorkerService(BaseService[WorkerModel, WorkerRepository]):
         users = self.user_service.get_by_ids(worker_ids)
         return {user.id: user for user in users}
 
-    def _build_response_dtos(
+    def _build_worker_dtos(
         self, workers: Sequence[WorkerModel]
     ) -> Sequence[WorkerResponseDTO]:
         """Получение DTO для списка сотрудников."""
-        users_map = self._get_users_by_worker_id(workers)
-        response_dtos: list[WorkerResponseDTO] = []
+        users_by_worker_id = self._get_users_by_worker_id(workers)
+        worker_dtos: list[WorkerResponseDTO] = []
         for worker in workers:
-            user = users_map.get(worker.id)
-            response_dtos.append(
+            user = users_by_worker_id.get(worker.id)
+            worker_dtos.append(
                 WorkerResponseDTO(
                     id=worker.id,
                     name=worker.name,
@@ -67,14 +67,14 @@ class WorkerService(BaseService[WorkerModel, WorkerRepository]):
                     last_login=user.last_login if user else None,
                 )
             )
-        return response_dtos
+        return worker_dtos
 
-    def _build_pagination(
+    def _build_paginated_response(
         self, workers: Sequence[WorkerModel], query: WorkerQuery, total: int
     ) -> Pagination[WorkerResponseDTO]:
         """Получение пагинации для списка сотрудников."""
         return Pagination(
-            items=self._build_response_dtos(workers),
+            items=self._build_worker_dtos(workers),
             page=query.page,
             per_page=query.per_page,
             total=total,
