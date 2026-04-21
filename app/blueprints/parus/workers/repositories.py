@@ -25,9 +25,9 @@ class WorkerRepository(ParusRepository[WorkerModel]):
         stmt = self._apply_search_filter(stmt, search, search_by)
         return self.session.scalars(stmt.offset(offset).limit(limit)).all()
 
-    def get_by_id(self, id: UUID) -> WorkerModel | None:
+    def get_by_id(self, worker_id: UUID) -> WorkerModel | None:
         """Возвращает сотрудника по идентификатору."""
-        return self.get_by_attribute("id", id)
+        return self.get_by_attribute("id", worker_id)
 
     def count_all(
         self, active: bool | None, search: str | None, search_by: str | None

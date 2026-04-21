@@ -35,9 +35,9 @@ class WorkerService(BaseService[WorkerModel, WorkerRepository]):
         )
         return self._build_pagination(workers, query, total)
 
-    def get_by_id(self, id: UUID) -> WorkerResponseDTO | None:
+    def get_by_id(self, worker_id: UUID) -> WorkerResponseDTO | None:
         """Возвращает сотрудника по идентификатору."""
-        worker = self.repository.get_by_id(id)
+        worker = self.repository.get_by_id(worker_id)
         return self._build_response_dtos([worker])[0] if worker is not None else None
 
     def _attach_user_to_worker(self, workers: Sequence[WorkerModel]) -> None:
