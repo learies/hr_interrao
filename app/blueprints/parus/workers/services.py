@@ -1,7 +1,7 @@
 from typing import Sequence
 from uuid import UUID
 
-from app.blueprints.account.users.services import UserService, get_user_service
+from app.blueprints.account.users.services import UserService, build_user_service
 from app.core.services import BaseService
 from app.settings.database import get_db_session
 
@@ -79,9 +79,7 @@ class WorkerService(BaseService[WorkerModel, WorkerRepository]):
         )
 
 
-def get_worker_service() -> WorkerService:
+def build_worker_service() -> WorkerService:
     """Получение сервиса для работы с сотрудниками."""
-    session = get_db_session()
-    repository = WorkerRepository(model=WorkerModel, session=session)
-    user_service = get_user_service()
-    return WorkerService(repository=repository, user_service=user_service)
+    repository = WorkerRepository(model=WorkerModel, session=get_db_session())
+    return WorkerService(repository=repository, user_service=build_user_service())

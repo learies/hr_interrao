@@ -7,7 +7,7 @@ from flask.wrappers import Response
 from app.blueprints.parus import parus_bp
 
 from .query import WorkerQuery
-from .services import get_worker_service
+from .services import build_worker_service
 
 
 @parus_bp.route(
@@ -18,8 +18,7 @@ from .services import get_worker_service
 def get_workers() -> tuple[Response, HTTPStatus]:
     """Получение списка сотрудников."""
     query = WorkerQuery.from_request(request.args)
-    worker_service = get_worker_service()
-    workers = worker_service.get_all(query)
+    workers = build_worker_service().get_all(query)
     return jsonify(
         {
             "items": [worker.to_dict() for worker in workers.items],
@@ -40,8 +39,7 @@ def get_workers() -> tuple[Response, HTTPStatus]:
 )
 def get_worker(worker_id: UUID) -> tuple[Response, HTTPStatus]:
     """Получение сотрудника по идентификатору."""
-    worker_service = get_worker_service()
-    worker = worker_service.get_by_id(worker_id)
+    worker = build_worker_service().get_by_id(worker_id)
     if worker is not None:
         return jsonify(worker.to_dict()), HTTPStatus.OK
     return jsonify({"error": "Сотрудник не найден"}), HTTPStatus.NOT_FOUND

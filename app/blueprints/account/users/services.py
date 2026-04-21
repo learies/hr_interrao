@@ -43,8 +43,7 @@ class UserService(AccountService[UserModel, UserRepository]):
         ]
 
 
-def get_user_service() -> UserService:
+def build_user_service() -> UserService:
     """Получение сервиса для работы с пользователями."""
-    session = get_db_session()
-    user_repository = UserRepository(UserModel, session)
+    user_repository = UserRepository(model=UserModel, session=get_db_session())
     return UserService(user_repository)
