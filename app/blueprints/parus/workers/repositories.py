@@ -15,14 +15,15 @@ class WorkerRepository(ParusRepository[WorkerModel]):
         self,
         offset: int,
         limit: int,
-        active: bool | None,
-        search: str | None,
         search_by: str | None,
+        search: str | None,
+        filter_by: str | None,
+        filter: bool | None,
     ) -> Sequence[WorkerModel]:
         """Возвращает всех сотрудников."""
         stmt = select(self.model)
-        stmt = self._apply_active(stmt, active)
-        stmt = self._apply_search_filter(stmt, search, search_by)
+        stmt = self._apply_search(stmt, search_by=search_by, search=search)
+        stmt = self._apply_filter(stmt, filter_by=filter_by, filter=filter)
         return self.session.scalars(stmt.offset(offset).limit(limit)).all()
 
     def get_by_id(self, worker_id: UUID) -> WorkerModel | None:
@@ -30,24 +31,38 @@ class WorkerRepository(ParusRepository[WorkerModel]):
         return self.get_by_attribute("id", worker_id)
 
     def count_all(
-        self, active: bool | None, search: str | None, search_by: str | None
+        self,
+        search_by: str | None,
+        search: str | None,
+        filter_by: str | None,
+        filter: bool | None,
     ) -> int:
         """Возвращает количество всех сотрудников."""
         stmt = select(func.count()).select_from(self.model)
-        stmt = self._apply_active(stmt, active)
-        stmt = self._apply_search_filter(stmt, search, search_by)
+        stmt = self._apply_search(stmt, search_by=search_by, search=search)
+        stmt = self._apply_filter(stmt, filter_by=filter_by, filter=filter)
         return self.session.scalar(stmt) or 0
 
-    def _apply_active(self, stmt: Select, active: bool | None) -> Select:
-        """Применяет фильтр по активности."""
-        if active is not None:
-            return stmt.where(self.model.active.is_(active))
-        return stmt
-
-    def _apply_search_filter(
-        self, stmt: Select, search: str | None, search_by: str | None
+    def _apply_filter(
+        self,
+        stmt: Select,
+        filter_by: str | None,
+        filter: bool | None,
     ) -> Select:
-        """Применяет фильтр по поисковому запросу."""
+        """Применяет фильтрацию."""
+        if filter is None:
+            return stmt
+        if filter_by:
+            if filter_by == "is_active":
+                return stmt.where(self.model.active.is_(filter))
+            else:
+                return stmt.where(getattr(self.model, filter_by).is_(filter))
+        return stmt.where(self.model.active.is_(filter))
+
+    def _apply_search(
+        self, stmt: Select, search_by: str | None, search: str | None
+    ) -> Select:
+        """Применяет поиск."""
         if not search:
             return stmt
 

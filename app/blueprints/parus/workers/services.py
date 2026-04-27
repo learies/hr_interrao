@@ -26,14 +26,16 @@ class WorkerService(BaseService[WorkerModel, WorkerRepository]):
         workers: Sequence[WorkerModel] = self.repository.get_all(
             offset=query.offset,
             limit=query.limit,
-            active=query.active,
-            search=query.search,
             search_by=query.search_by,
+            search=query.search,
+            filter_by=query.filter_by,
+            filter=query.filter,
         )
         total: int = self.repository.count_all(
-            active=query.active,
-            search=query.search,
             search_by=query.search_by,
+            search=query.search,
+            filter_by=query.filter_by,
+            filter=query.filter,
         )
 
         return self._build_pagination(workers, query.page, query.per_page, total)
