@@ -1,4 +1,5 @@
-from typing import Sequence
+from collections.abc import Mapping, Sequence
+from types import MappingProxyType
 from uuid import UUID
 
 from app.blueprints.account.users.dto import UserResponseDTO
@@ -22,7 +23,7 @@ class WorkerService(BaseService[WorkerModel, WorkerRepository]):
 
     def get_all(self, query: WorkerQuery) -> Pagination[WorkerResponseDTO]:
         """Возвращает всех сотрудников."""
-        workers = self.repository.get_all(
+        workers: Sequence[WorkerModel] = self.repository.get_all(
             offset=query.offset,
             limit=query.limit,
             search_by=query.search_by,
@@ -30,55 +31,61 @@ class WorkerService(BaseService[WorkerModel, WorkerRepository]):
             filter_by=query.filter_by,
             filter=query.filter,
         )
-        total = self.repository.count_all(
+        total: int = self.repository.count_all(
             search_by=query.search_by,
             search=query.search,
             filter_by=query.filter_by,
             filter=query.filter,
         )
-        return self._build_paginated_response(workers, query, total)
+
+        return self._build_pagination(workers, query.page, query.per_page, total)
 
     def get_by_id(self, worker_id: UUID) -> WorkerResponseDTO | None:
         """Возвращает сотрудника по идентификатору."""
-        worker = self.repository.get_by_id(worker_id)
+        worker: WorkerModel | None = self.repository.get_by_id(worker_id)
+
         return self._build_worker_dtos([worker])[0] if worker is not None else None
 
-    def _get_users_by_worker_id(
-        self, workers: Sequence[WorkerModel]
-    ) -> dict[UUID, UserResponseDTO]:
-        """Возвращает пользователей, сгруппированных по идентификатору сотрудника."""
-        worker_ids = [worker.id for worker in workers]
-        users = self.user_service.get_by_ids(worker_ids)
-        return {user.id: user for user in users}
+    def _map_users_by_worker_ids(
+        self, worker_ids: Sequence[UUID]
+    ) -> Mapping[UUID, UserResponseDTO]:
+        """Возвращает read-only маппинг пользователей по ID сотрудника.
+
+        Пользователи которые отсудствуют в системе, их ID в результат не попадает.
+        """
+        users: Sequence[UserResponseDTO] = self.user_service.get_by_ids(worker_ids)
+
+        return MappingProxyType({user.id: user for user in (users or ())})
 
     def _build_worker_dtos(
         self, workers: Sequence[WorkerModel]
-    ) -> Sequence[WorkerResponseDTO]:
-        """Получение DTO для списка сотрудников."""
-        users_by_worker_id = self._get_users_by_worker_id(workers)
-        worker_dtos: list[WorkerResponseDTO] = []
-        for worker in workers:
-            user = users_by_worker_id.get(worker.id)
-            worker_dtos.append(
-                WorkerResponseDTO(
-                    id=worker.id,
-                    name=worker.name,
-                    email=worker.email,
-                    is_active=worker.is_active,
-                    is_admin=user.is_admin if user else False,
-                    last_login=user.last_login if user else None,
-                )
-            )
-        return worker_dtos
+    ) -> tuple[WorkerResponseDTO, ...]:
+        """Возвращает DTO сотрудников с обагащёнными данными пользователей."""
+        worker_ids: tuple[UUID, ...] = tuple(worker.id for worker in workers)
+        users_map: Mapping[UUID, UserResponseDTO] = self._map_users_by_worker_ids(
+            worker_ids
+        )
 
-    def _build_paginated_response(
-        self, workers: Sequence[WorkerModel], query: WorkerQuery, total: int
+        return tuple(
+            WorkerResponseDTO(
+                id=w.id,
+                name=w.name,
+                email=w.email,
+                is_active=w.is_active,
+                is_admin=users_map[w.id].is_admin if w.id in users_map else False,
+                last_login=users_map[w.id].last_login if w.id in users_map else None,
+            )
+            for w in workers
+        )
+
+    def _build_pagination(
+        self, workers: Sequence[WorkerModel], page: int, per_page: int, total: int
     ) -> Pagination[WorkerResponseDTO]:
-        """Получение пагинации для списка сотрудников."""
+        """Возвращает пагинации."""
         return Pagination(
             items=self._build_worker_dtos(workers),
-            page=query.page,
-            per_page=query.per_page,
+            page=page,
+            per_page=per_page,
             total=total,
         )
 
