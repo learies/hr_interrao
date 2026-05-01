@@ -4,17 +4,17 @@ from uuid import UUID
 
 from app.blueprints.account.users.dto import UserResponseDTO
 from app.blueprints.account.users.services import UserService, build_user_service
-from app.core.services import BaseService
 from app.settings.database import get_db_session
 
 from ..pagination import Pagination
+from ..services import ParusService
 from .dto import WorkerResponseDTO
 from .models import WorkerModel
 from .query import WorkerQuery
 from .repositories import WorkerRepository
 
 
-class WorkerService(BaseService[WorkerModel, WorkerRepository]):
+class WorkerService(ParusService[WorkerModel, WorkerRepository]):
     """Сервис для работы с сотрудниками."""
 
     def __init__(self, repository: WorkerRepository, user_service: UserService):
