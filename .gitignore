@@ -1,5 +1,25 @@
+# Виртуальное окружение
 .venv/
-*.py[oc]
-__pycache__/
 
+# Python: байткод и кэши
+__pycache__/
+*.py[oc]
+
+# Инструменты разработки
+.pytest_cache/
+.ruff_cache/
+
+# Покрытие тестами
+.coverage
+htmlcov/
+
+# Локальные переменные окружения
 .env
+
+# Правила для AI-инструментов
+# Эти исключения нужны, потому что глобальный gitignore может скрывать такие файлы.
+!.cursor/
+!.cursor/rules/
+!.cursor/rules/*.mdc
+!.cursorignore
+!AGENTS.md
