@@ -26,16 +26,12 @@ class WorkerService(ParusService[WorkerModel, WorkerRepository]):
         workers: Sequence[WorkerModel] = self.repository.get_all(
             offset=query.offset,
             limit=query.limit,
-            search_by=query.search_by,
             search=query.search,
-            filter_by=query.filter_by,
-            filter=query.filter,
+            is_active=query.is_active,
         )
         total: int = self.repository.count_all(
-            search_by=query.search_by,
             search=query.search,
-            filter_by=query.filter_by,
-            filter=query.filter,
+            is_active=query.is_active,
         )
 
         return self._build_pagination(workers, query.page, query.per_page, total)

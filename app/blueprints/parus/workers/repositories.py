@@ -15,16 +15,16 @@ class WorkerRepository(ParusRepository[WorkerModel]):
         self,
         offset: int,
         limit: int,
-        search_by: str | None,
         search: str | None,
-        filter_by: str | None,
-        filter: bool | None,
+        is_active: bool | None,
     ) -> Sequence[WorkerModel]:
         """Возвращает всех сотрудников."""
         stmt = select(self.model)
-        stmt = self._apply_search(stmt, search_by=search_by, search=search)
-        stmt = self._apply_filter(stmt, filter_by=filter_by, filter=filter)
-        return self.session.scalars(stmt.offset(offset).limit(limit)).all()
+        stmt = self._apply_search(stmt, search=search)
+        stmt = self._apply_filter_active(stmt, is_active=is_active)
+        return self.session.scalars(
+            stmt.order_by(self.model.name).offset(offset).limit(limit)
+        ).all()
 
     def get_by_id(self, worker_id: UUID) -> WorkerModel | None:
         """Возвращает сотрудника по идентификатору."""
@@ -32,42 +32,25 @@ class WorkerRepository(ParusRepository[WorkerModel]):
 
     def count_all(
         self,
-        search_by: str | None,
         search: str | None,
-        filter_by: str | None,
-        filter: bool | None,
+        is_active: bool | None,
     ) -> int:
         """Возвращает количество всех сотрудников."""
         stmt = select(func.count()).select_from(self.model)
-        stmt = self._apply_search(stmt, search_by=search_by, search=search)
-        stmt = self._apply_filter(stmt, filter_by=filter_by, filter=filter)
+        stmt = self._apply_search(stmt, search=search)
+        stmt = self._apply_filter_active(stmt, is_active=is_active)
         return self.session.scalar(stmt) or 0
 
-    def _apply_filter(
-        self,
-        stmt: Select,
-        filter_by: str | None,
-        filter: bool | None,
-    ) -> Select:
-        """Применяет фильтрацию."""
-        if filter is None:
-            return stmt
-        if filter_by:
-            if filter_by == "is_active":
-                return stmt.where(self.model.active.is_(filter))
-            else:
-                return stmt.where(getattr(self.model, filter_by).is_(filter))
-        return stmt.where(self.model.active.is_(filter))
+    def _apply_filter_active(self, stmt: Select, is_active: bool | None) -> Select:
+        """Применяет фильтрацию по активности."""
+        if is_active is None:
+            return stmt.where(self.model.active.is_(True))
+        return stmt.where(self.model.active.is_(is_active))
 
-    def _apply_search(
-        self, stmt: Select, search_by: str | None, search: str | None
-    ) -> Select:
+    def _apply_search(self, stmt: Select, search: str | None) -> Select:
         """Применяет поиск."""
         if not search:
             return stmt
-
-        if search_by:
-            return stmt.where(getattr(self.model, search_by).ilike(f"%{search}%"))
 
         return stmt.where(
             or_(
