@@ -84,6 +84,12 @@ Use existing service builders such as `build_user_service()` and `build_worker_s
 - Keep environment variable names in config classes and resolve them through `load_config(...)`.
 - Use `.env` only for local development.
 
+## Files To Avoid
+
+- Do not inspect `.venv/`, `__pycache__/`, `.pytest_cache/`, `.ruff_cache/`, coverage output, logs, or temporary files unless the user explicitly asks for them.
+- Do not read `.env` or `.env.*` unless the task specifically requires checking local environment variables.
+- Prefer project source, tests, `pyproject.toml`, `requirements/`, SQL files, and lockfiles when gathering context.
+
 ## Change Discipline
 
 - Prefer targeted edits that match nearby code.
