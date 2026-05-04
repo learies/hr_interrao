@@ -33,6 +33,12 @@ class UserService(AccountService[UserModel, UserRepository]):
 
         return self._build_response_dtos(users)
 
+    def get_admin_ids(self) -> tuple[UserResponseDTO, ...]:
+        """Возвращает пользователей администраторов."""
+        users: Sequence[UserModel] = self.repository.get_admin_ids()
+
+        return self._build_response_dtos(users)
+
     def _build_response_dtos(
         self, users: Sequence[UserModel]
     ) -> tuple[UserResponseDTO, ...]:
