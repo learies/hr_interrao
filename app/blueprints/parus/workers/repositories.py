@@ -17,9 +17,11 @@ class WorkerRepository(ParusRepository[WorkerModel]):
         limit: int,
         search: str | None,
         is_active: bool | None,
+        worker_ids: Sequence[UUID] | None = None,
     ) -> Sequence[WorkerModel]:
         """Возвращает всех сотрудников."""
         stmt = select(self.model)
+        stmt = self._apply_filter_worker_ids(stmt, worker_ids=worker_ids)
         stmt = self._apply_search(stmt, search=search)
         stmt = self._apply_filter_active(stmt, is_active=is_active)
         return self.session.scalars(
@@ -34,12 +36,20 @@ class WorkerRepository(ParusRepository[WorkerModel]):
         self,
         search: str | None,
         is_active: bool | None,
+        worker_ids: Sequence[UUID] | None = None,
     ) -> int:
         """Возвращает количество всех сотрудников."""
         stmt = select(func.count()).select_from(self.model)
+        stmt = self._apply_filter_worker_ids(stmt, worker_ids=worker_ids)
         stmt = self._apply_search(stmt, search=search)
         stmt = self._apply_filter_active(stmt, is_active=is_active)
         return self.session.scalar(stmt) or 0
+
+    def _apply_filter_worker_ids(self, stmt: Select, worker_ids: Sequence[UUID] | None) -> Select:
+        """Применяет фильтрацию по идентификаторам сотрудников."""
+        if worker_ids is None or not worker_ids:
+            return stmt
+        return stmt.where(self.model.id.in_(worker_ids))
 
     def _apply_filter_active(self, stmt: Select, is_active: bool | None) -> Select:
         """Применяет фильтрацию по активности."""

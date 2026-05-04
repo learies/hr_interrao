@@ -23,15 +23,18 @@ class WorkerService(ParusService[WorkerModel, WorkerRepository]):
 
     def get_all(self, query: WorkerQuery) -> Pagination[WorkerResponseDTO]:
         """Возвращает всех сотрудников."""
+        worker_ids: tuple[UUID, ...] | None = self._get_worker_admin_ids(query)
         workers: Sequence[WorkerModel] = self.repository.get_all(
             offset=query.offset,
             limit=query.limit,
             search=query.search,
             is_active=query.is_active,
+            worker_ids=worker_ids,
         )
         total: int = self.repository.count_all(
             search=query.search,
             is_active=query.is_active,
+            worker_ids=worker_ids,
         )
 
         return self._build_pagination(workers, query.page, query.per_page, total)
@@ -41,6 +44,12 @@ class WorkerService(ParusService[WorkerModel, WorkerRepository]):
         worker: WorkerModel | None = self.repository.get_by_id(worker_id)
 
         return self._build_worker_dtos([worker])[0] if worker is not None else None
+
+    def _get_worker_admin_ids(self, query: WorkerQuery) -> tuple[UUID, ...] | None:
+        """Возвращает идентификаторы администраторов."""
+        if query.is_admin is True:
+            users: Sequence[UserResponseDTO] = self.user_service.get_admin_ids()
+            return tuple(user.id for user in users)
 
     def _map_users_by_worker_ids(
         self, worker_ids: Sequence[UUID]
