@@ -24,7 +24,7 @@ class UserRepository(AccountRepository[UserModel]):
             select(UserModel).where(UserModel.id.in_(user_ids))
         ).all()
 
-    def get_admin_ids(self) -> Sequence[UserModel]:
+    def get_admins(self) -> Sequence[UserModel]:
         """Возвращает пользователей администраторов."""
         return self.session.scalars(
             select(self.model).where(self.model.is_admin.is_(True))
