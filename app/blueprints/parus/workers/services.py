@@ -23,7 +23,13 @@ class WorkerService(ParusService[WorkerModel, WorkerRepository]):
 
     def get_all(self, query: WorkerQuery) -> Pagination[WorkerResponseDTO]:
         """Возвращает всех сотрудников."""
-        worker_ids: tuple[UUID, ...] | None = self._get_worker_admin_ids(query)
+        users: tuple[UserResponseDTO, ...] | None = None
+        worker_ids: tuple[UUID, ...] | None = None
+
+        if query.is_admin is True:
+            users = self.user_service.get_admins()
+            worker_ids = tuple(user.id for user in (users or ()))
+
         workers: Sequence[WorkerModel] = self.repository.get_all(
             offset=query.offset,
             limit=query.limit,
@@ -37,39 +43,33 @@ class WorkerService(ParusService[WorkerModel, WorkerRepository]):
             worker_ids=worker_ids,
         )
 
-        return self._build_pagination(workers, query.page, query.per_page, total)
+        return self._build_pagination(
+            workers, query.page, query.per_page, total, users=users
+        )
 
     def get_by_id(self, worker_id: UUID) -> WorkerResponseDTO | None:
         """Возвращает сотрудника по идентификатору."""
         worker: WorkerModel | None = self.repository.get_by_id(worker_id)
 
-        return self._build_worker_dtos([worker])[0] if worker is not None else None
+        return (
+            self._build_worker_dtos(workers=[worker])[0] if worker is not None else None
+        )
 
-    def _get_worker_admin_ids(self, query: WorkerQuery) -> tuple[UUID, ...] | None:
-        """Возвращает идентификаторы администраторов."""
-        if query.is_admin is True:
-            users: Sequence[UserResponseDTO] = self.user_service.get_admin_ids()
-            return tuple(user.id for user in users)
-
-    def _map_users_by_worker_ids(
-        self, worker_ids: Sequence[UUID]
+    def _build_users_map(
+        self, users: tuple[UserResponseDTO, ...]
     ) -> Mapping[UUID, UserResponseDTO]:
-        """Возвращает read-only маппинг пользователей по ID сотрудника.
-
-        Пользователи которые отсудствуют в системе, их ID в результат не попадает.
-        """
-        users: Sequence[UserResponseDTO] = self.user_service.get_by_ids(worker_ids)
-
+        """Возвращает read-only маппинг пользователей по ID сотрудника."""
         return MappingProxyType({user.id: user for user in (users or ())})
 
     def _build_worker_dtos(
-        self, workers: Sequence[WorkerModel]
+        self, *, workers: Sequence[WorkerModel], users: tuple[UserResponseDTO, ...] | None = None
     ) -> tuple[WorkerResponseDTO, ...]:
-        """Возвращает DTO сотрудников с обагащёнными данными пользователей."""
-        worker_ids: tuple[UUID, ...] = tuple(worker.id for worker in workers)
-        users_map: Mapping[UUID, UserResponseDTO] = self._map_users_by_worker_ids(
-            worker_ids
-        )
+        """Возвращает DTO сотрудников с обогащёнными данными пользователей."""
+        if users is None:
+            worker_ids = tuple(worker.id for worker in workers)
+            users = self.user_service.get_by_ids(worker_ids)
+        
+        users_map = self._build_users_map(users=users)
 
         return tuple(
             WorkerResponseDTO(
@@ -84,11 +84,17 @@ class WorkerService(ParusService[WorkerModel, WorkerRepository]):
         )
 
     def _build_pagination(
-        self, workers: Sequence[WorkerModel], page: int, per_page: int, total: int
+        self,
+        workers: Sequence[WorkerModel],
+        page: int,
+        per_page: int,
+        total: int,
+        *,
+        users: tuple[UserResponseDTO, ...] | None = None,
     ) -> Pagination[WorkerResponseDTO]:
         """Возвращает пагинации."""
         return Pagination(
-            items=self._build_worker_dtos(workers),
+            items=self._build_worker_dtos(workers=workers, users=users),
             page=page,
             per_page=per_page,
             total=total,
