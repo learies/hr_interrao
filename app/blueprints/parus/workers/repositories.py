@@ -45,9 +45,11 @@ class WorkerRepository(ParusRepository[WorkerModel]):
         stmt = self._apply_filter_active(stmt, is_active=is_active)
         return self.session.scalar(stmt) or 0
 
-    def _apply_filter_worker_ids(self, stmt: Select, worker_ids: Sequence[UUID] | None) -> Select:
+    def _apply_filter_worker_ids(
+        self, stmt: Select, worker_ids: Sequence[UUID] | None
+    ) -> Select:
         """Применяет фильтрацию по идентификаторам сотрудников."""
-        if worker_ids is None or not worker_ids:
+        if worker_ids is None:
             return stmt
         return stmt.where(self.model.id.in_(worker_ids))
 
