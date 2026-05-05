@@ -62,13 +62,16 @@ class WorkerService(ParusService[WorkerModel, WorkerRepository]):
         return MappingProxyType({user.id: user for user in (users or ())})
 
     def _build_worker_dtos(
-        self, *, workers: Sequence[WorkerModel], users: tuple[UserResponseDTO, ...] | None = None
+        self,
+        *,
+        workers: Sequence[WorkerModel],
+        users: tuple[UserResponseDTO, ...] | None = None,
     ) -> tuple[WorkerResponseDTO, ...]:
         """Возвращает DTO сотрудников с обогащёнными данными пользователей."""
         if users is None:
             worker_ids = tuple(worker.id for worker in workers)
             users = self.user_service.get_by_ids(worker_ids)
-        
+
         users_map = self._build_users_map(users=users)
 
         return tuple(
