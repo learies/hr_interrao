@@ -141,7 +141,9 @@ class TestLoadConfig:
             config.SQLALCHEMY_DATABASE_AUTHORIZATION_URI
             == "postgresql://authorization-db"
         )
-        assert config.SQLALCHEMY_BINDS["authorization"] == "postgresql://authorization-db"
+        assert (
+            config.SQLALCHEMY_BINDS["authorization"] == "postgresql://authorization-db"
+        )
 
     def test_load_database_uris_and_binds_from_env(self) -> None:
         """Тест для загрузки обоих URI базы данных и биндов из переменных окружения"""
@@ -159,7 +161,9 @@ class TestLoadConfig:
             config.SQLALCHEMY_DATABASE_AUTHORIZATION_URI
             == "postgresql://authorization-db"
         )
-        assert config.SQLALCHEMY_BINDS["authorization"] == "postgresql://authorization-db"
+        assert (
+            config.SQLALCHEMY_BINDS["authorization"] == "postgresql://authorization-db"
+        )
 
     def test_generate_secret_key_if_env_not_exists(self) -> None:
         """Тест для генерации секретного ключа если переменная окружения не существует"""
