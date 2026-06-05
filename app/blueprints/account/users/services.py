@@ -12,12 +12,6 @@ from .repositories import UserRepository
 class UserService(AccountService[UserModel, UserRepository]):
     """Сервис для работы с пользователями."""
 
-    def get_all(self) -> Sequence[UserResponseDTO]:
-        """Возвращает пользователей."""
-        users: Sequence[UserModel] = self.repository.get_all()
-
-        return self._build_response_dtos(users)
-
     def get_by_id(self, user_id: UUID) -> UserResponseDTO | None:
         """Возвращает пользователя по идентификатору."""
         user: UserModel | None = self.repository.get_by_id(user_id)
