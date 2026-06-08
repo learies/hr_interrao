@@ -6,7 +6,10 @@
     <h1>Список сотрудников</h1>
     <ul>
         {% for worker in pagination.items %}
-            <li>{{ worker.name }}</li>
+            <li>
+                <a href="{{ url_for('workers_views.get_worker', worker_id=worker.id) }}">{{ worker.name }}</a>
+            </li>
         {% endfor %}
     </ul>
+    {% include "includes/paginations.html" %}
 {% endblock %}

@@ -1,0 +1,31 @@
+{% if pagination.pages > 1 %}
+    <nav aria-label="Пагинация">
+        <p>Страница {{ pagination.page }} из {{ pagination.pages }} ({{ pagination.total }} записей)</p>
+
+        {% if pagination.page > 1 %}
+            {% set args = request.args.to_dict(flat=true) %}
+            {% set __ = args.update({'page': pagination.page - 1}) %}
+            <a href="{{ url_for(request.endpoint, **args) }}">← Назад</a>
+        {% endif %}
+
+        {% for page_num in pagination.iter_pages() %}
+            {% if page_num %}
+                {% if page_num == pagination.page %}
+                    <strong>{{ page_num }}</strong>
+                {% else %}
+                    {% set args = request.args.to_dict(flat=true) %}
+                    {% set __ = args.update({'page': page_num}) %}
+                    <a href="{{ url_for(request.endpoint, **args) }}">{{ page_num }}</a>
+                {% endif %}
+            {% else %}
+                <span>…</span>
+            {% endif %}
+        {% endfor %}
+
+        {% if pagination.page < pagination.pages %}
+            {% set args = request.args.to_dict(flat=true) %}
+            {% set __ = args.update({'page': pagination.page + 1}) %}
+            <a href="{{ url_for(request.endpoint, **args) }}">Вперёд →</a>
+        {% endif %}
+    </nav>
+{% endif %}
