@@ -1,3 +1,4 @@
+from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_sqlalchemy.session import Session
 from sqlalchemy.orm import DeclarativeBase, scoped_session
@@ -10,6 +11,10 @@ class _BaseModel(DeclarativeBase):
 
 
 db = SQLAlchemy(model_class=_BaseModel)
+
+migrate = Migrate(
+    compare_type=True, include_schemas=True, version_table_schema="system"
+)
 
 BaseModel = db.Model
 

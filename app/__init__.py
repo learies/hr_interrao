@@ -4,14 +4,14 @@ from flask import Flask
 
 from app.blueprints import register_blueprints
 from app.settings.config import Config, load_config
-from app.settings.database import db
+from app.settings.database import db, migrate
 from app.settings.env import init_env
 
 
 def create_app(
     config_class: type[Config], *, env: Mapping[str, str] | None = None
 ) -> Flask:
-    """Создание приложения"""
+    """Создание приложения."""
     # Инициализация переменных окружения
     if env is not None:
         init_env()
@@ -24,6 +24,9 @@ def create_app(
 
     # Инициализация базы данных
     db.init_app(app)
+
+    # Инициализация миграций
+    migrate.init_app(app, db)
 
     # Регистрация блюпринтов
     register_blueprints(app)
