@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Сотрудник{% endblock %}
+
+{% block content %}
+    <h1>Сотрудник</h1>
+    <p>Имя: {{ worker.name }}</p>
+    <p>Email: {{ worker.email }}</p>
+    <p>Активен: {{ worker.is_active }}</p>
+    <p>Администратор: {{ worker.is_admin }}</p>
+    <p>Последний вход: {{ worker.last_login }}</p>
+{% endblock %}

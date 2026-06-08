@@ -4,16 +4,17 @@ from uuid import UUID
 from flask import jsonify, request
 from flask.wrappers import Response
 
-from app.blueprints.parus import parus_bp
+import app.blueprints.parus.workers.constants as const
+from app.blueprints.parus import workers_api as bp
 
 from .query import WorkerQuery
 from .services import build_worker_service
 
 
-@parus_bp.route(
-    "/workers",
+@bp.route(
+    const.WORKERS_PATH,
     methods=(HTTPMethod.GET,),
-    endpoint="get_workers",
+    endpoint=const.WORKERS_ENDPOINT,
 )
 def get_workers() -> tuple[Response, HTTPStatus]:
     """Получение списка сотрудников."""
@@ -32,10 +33,10 @@ def get_workers() -> tuple[Response, HTTPStatus]:
     ), HTTPStatus.OK
 
 
-@parus_bp.route(
-    "/worker/<uuid:worker_id>",
+@bp.route(
+    const.WORKER_PATH,
     methods=(HTTPMethod.GET,),
-    endpoint="get_worker",
+    endpoint=const.WORKER_ENDPOINT,
 )
 def get_worker(worker_id: UUID) -> tuple[Response, HTTPStatus]:
     """Получение сотрудника по идентификатору."""
