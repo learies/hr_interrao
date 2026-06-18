@@ -26,9 +26,9 @@ class WorkerService(ParusService[WorkerModel, WorkerRepository]):
         users: tuple[UserResponseDTO, ...] | None = None
         worker_ids: tuple[UUID, ...] | None = None
 
-        if query.is_admin is True:
+        if query.is_admin:
             users = self.user_service.get_admins()
-            worker_ids = tuple(user.id for user in (users or ()))
+            worker_ids = tuple(user.id for user in users)
 
         workers: Sequence[WorkerModel] = self.repository.get_all(
             offset=query.offset,
@@ -59,7 +59,7 @@ class WorkerService(ParusService[WorkerModel, WorkerRepository]):
         self, users: tuple[UserResponseDTO, ...]
     ) -> Mapping[UUID, UserResponseDTO]:
         """Возвращает read-only маппинг пользователей по ID сотрудника."""
-        return MappingProxyType({user.id: user for user in (users or ())})
+        return MappingProxyType({user.id: user for user in users})
 
     def _build_worker_dtos(
         self,
