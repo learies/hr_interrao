@@ -7,9 +7,9 @@ import app.blueprints.parus.workers.constants as const
 from app.blueprints.parus import workers_views as bp
 
 from ..pagination import Pagination
+from .dependencies import get_worker_service
 from .dto import WorkerResponseDTO
 from .query import WorkerQuery
-from .services import build_worker_service
 
 
 @bp.route(
@@ -20,7 +20,7 @@ from .services import build_worker_service
 def get_workers() -> str:
     """Получение списка сотрудников."""
     query = WorkerQuery.from_request(request.args)
-    pagination: Pagination[WorkerResponseDTO] = build_worker_service().get_all(query)
+    pagination: Pagination[WorkerResponseDTO] = get_worker_service().get_all(query)
     return render_template(const.WORKERS_TEMPLATE, pagination=pagination)
 
 
@@ -31,7 +31,7 @@ def get_workers() -> str:
 )
 def get_worker(worker_id: UUID) -> str:
     """Получение сотрудника по идентификатору."""
-    worker: WorkerResponseDTO | None = build_worker_service().get_by_id(worker_id)
+    worker: WorkerResponseDTO | None = get_worker_service().get_by_id(worker_id)
     if worker is None:
         abort(HTTPStatus.NOT_FOUND)
     return render_template(const.WORKER_TEMPLATE, worker=worker)
