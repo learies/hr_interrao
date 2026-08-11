@@ -1,4 +1,5 @@
-from typing import ClassVar, Mapping, Self
+from collections.abc import Mapping
+from typing import ClassVar, Self
 
 
 class WorkerQuery:

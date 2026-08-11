@@ -1,6 +1,6 @@
 import os
 import secrets
-from typing import Mapping
+from collections.abc import Mapping
 
 
 class Config:

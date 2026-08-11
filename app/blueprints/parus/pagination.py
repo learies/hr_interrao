@@ -1,6 +1,6 @@
 import math
-from collections.abc import Iterator
-from typing import Generic, Sequence, TypeVar
+from collections.abc import Iterator, Sequence
+from typing import Generic, TypeVar
 
 T = TypeVar("T")
 

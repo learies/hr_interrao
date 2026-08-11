@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import ClassVar
 from uuid import UUID
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Uuid, func, sql
@@ -11,7 +12,7 @@ class UserModel(BaseModel):
     """Модель пользователя."""
 
     __tablename__ = "user"
-    __table_args__ = {"schema": "account"}
+    __table_args__: ClassVar[dict] = {"schema": "account"}
 
     id: Mapped[UUID] = mapped_column(
         Uuid(as_uuid=True),
@@ -45,7 +46,7 @@ class LastLoginModel(BaseModel):
     """Модель последнего входа пользователя."""
 
     __tablename__ = "last_login"
-    __table_args__ = {"schema": "account"}
+    __table_args__: ClassVar[dict] = {"schema": "account"}
 
     user_id: Mapped[UUID] = mapped_column(
         Uuid(as_uuid=True),
